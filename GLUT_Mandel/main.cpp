@@ -15,6 +15,7 @@
 #define MP std::make_pair
 #define DEF_W 640
 #define DEF_H 480
+#define STRING_LEN 1000
 typedef std::pair<GLfloat,GLfloat> PII;
 typedef std::pair< PII, PII > PIV;
 
@@ -26,6 +27,7 @@ GLfloat palette[PALETTE_SIZE][3];//R,G,B;
 GLfloat black[3] = {0.0f,0.0f,0.0f};
 const GLfloat r_HOLD = 4.1f;
 bool FullScreen=false;
+char title[STRING_LEN];
 int consoleID;
 int old_dx=0, old_dy=0, new_dx=0, new_dy=0;
 std::stack< PIV > HistoryWindow;
@@ -103,6 +105,10 @@ void Paint(void){
      }
      glEnd();
      glutSwapBuffers();
+     sprintf(title,"MandelBrot   X:%.2lf,%.2lf Y:%.2lf,%.2lf", (double)minX, (double)maxX,\
+             (double)minY,(double)maxY
+     );
+     glutSetWindowTitle(title);
 }
 
 //old_dx=0, old_dy=0, new_dx=0, new_dy=0, rec_dx=0, rec_dy=0;
