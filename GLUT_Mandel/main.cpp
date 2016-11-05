@@ -13,6 +13,8 @@
 #define PALETTE_SIZE 256
 #define EPS 0.97f
 #define MP std::make_pair
+#define DEF_W 640
+#define DEF_H 480
 typedef std::pair<GLfloat,GLfloat> PII;
 typedef std::pair< PII, PII > PIV;
 
@@ -138,6 +140,7 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
 		case 'F': // pressing F is turning on/off fullscreen mode
 		case 'f':
 			if(FullScreen){
+                width = DEF_W; height=DEF_H;
 				glutReshapeWindow(width,height); // sets default window size
 				GLsizei windowX = (glutGet(GLUT_SCREEN_WIDTH)-width)/2;
 				GLsizei windowY = (glutGet(GLUT_SCREEN_HEIGHT)-height)/2;
