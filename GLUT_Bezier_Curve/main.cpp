@@ -81,6 +81,7 @@ int main(int argc, char **argv)
     
     glShadeModel(GL_SMOOTH);//GL smooth shading
     glEnable(GL_DEPTH_TEST);//Prevent pixels behind the first pixel cover the first
+    glEnable(GL_POINT_SMOOTH);
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
     glMatrixMode (GL_PROJECTION);//Use GL_PROJECTION glMatrixMode
     glLoadIdentity(); // Load matrix "I"
