@@ -11,17 +11,17 @@
 #include <complex>
 #include <stack>
 #define PALETTE_SIZE 256
-#define EPS 0.97f
+#define EPS 0.997f
 #define MP std::make_pair
-#define DEF_W 640
-#define DEF_H 480
+#define DEF_W 800
+#define DEF_H 450
 #define STRING_LEN 1000
 typedef std::pair<GLfloat,GLfloat> PII;
 typedef std::pair< PII, PII > PIV;
 
 int TH_HOLD=150;
-size_t width=640, height=480;
-GLfloat minX = -2.0f, maxX = 1.2f, minY = -1.6f, maxY = 1.6;
+size_t width=DEF_W, height=DEF_H;
+GLfloat minX = -4.0f, maxX = 4.0f, minY = -2.25f, maxY = 2.25f;
 GLfloat dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
 GLfloat palette[PALETTE_SIZE][3];//R,G,B;
 GLfloat black[3] = {0.0f,0.0f,0.0f};
@@ -231,6 +231,7 @@ int main(int argc, char **argv)
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_POINT_SMOOTH);//SMOOTH POINTS BEFORE PUSH INTO BUFFER
+    //glEnable(GL_DITHER);
     glViewport(0,0, (GLsizei)width, (GLsizei)height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

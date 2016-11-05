@@ -11,17 +11,17 @@
 #include <complex>
 #include <stack>
 #define PALETTE_SIZE 256
-#define EPS 0.97f
+#define EPS 0.997f
 #define MP std::make_pair
-#define DEF_W 640
-#define DEF_H 480
+#define DEF_W 800
+#define DEF_H 450
 #define STRING_LEN 1000
 typedef std::pair<GLfloat,GLfloat> PII;
 typedef std::pair< PII, PII > PIV;
 
 int TH_HOLD=150;
-size_t width=640, height=480;
-GLfloat minX = -5.0f, maxX = 5.0f, minY = -5.0f, maxY = 5.0f;
+size_t width=DEF_W, height=DEF_H;
+GLfloat minX = -4.2f, maxX = 3.8f, minY = -1.80f, maxY = 2.70f;
 GLfloat dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
 GLfloat palette[PALETTE_SIZE][3];//R,G,B;
 GLfloat black[3] = {0.0f,0.0f,0.0f};
@@ -62,7 +62,7 @@ inline double mu_trans(double x, double mu){
 }
 
 void InitPalette(void){
-       GLfloat oriI=0.0f, oriQ=0.5226f, oriY=0.0f;
+       GLfloat oriI=0.5957f, oriQ=0.5226f, oriY=0.0f;
        const double stepQ = 0.5226f*2.0f/(double)PALETTE_SIZE;
        const double stepI = 0.5957f*2.0f/(double)PALETTE_SIZE;
        const double stepY = 1.0f/(double)PALETTE_SIZE;
@@ -72,7 +72,7 @@ void InitPalette(void){
                palette[i][0] = pow(i*stepY,0.3f);//Y
                //palette[i][0] = (GLfloat)mu_trans((double)(i/PALETTE_SIZE), 255.0f);
                palette[i][1] = (GLfloat)(stepI*(double)i);//I
-               palette[i][2] = oriQ-(GLfloat)(stepQ*(double)i);//Q
+               palette[i][2] = (GLfloat)(stepQ*(double)i);//Q
        }
        /*Convert YIQ to RGB*/
        for(int i=0; i<PALETTE_SIZE; ++i){
@@ -232,6 +232,7 @@ int main(int argc, char **argv)
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_POINT_SMOOTH);//SMOOTH POINTS BEFORE PUSH INTO BUFFER
+    glEnable(GL_DITHER);
     glViewport(0,0, (GLsizei)width, (GLsizei)height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
