@@ -3,7 +3,11 @@
 #include <cmath>
 #include <complex>
 #include <cstring>
+#ifdef __linux__
+#include <GL/glut.h>
+#elif __WIN32
 #include <GL\glut.h>
+#endif
 #include <algorithm>
 #define PALETTE_SIZE 256
 #define EPS 0.97f
