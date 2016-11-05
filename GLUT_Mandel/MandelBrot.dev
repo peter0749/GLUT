@@ -11,14 +11,14 @@ PrivateResource=
 ResourceIncludes=
 MakeIncludes=
 Compiler=
-CppCompiler=
-Linker=-lopengl32 -lglu32 -lglut32
+CppCompiler=_@@_
+Linker=-lopengl32 -lglu32 -lglut32 -lglut_@@_
 IsCpp=1
 Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=
+OverrideOutputName=MandelBrot.exe
 HostApplication=
 Folders=
 CommandLine=
@@ -27,7 +27,7 @@ CustomMakefile=
 IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
-CompilerSettings=
+CompilerSettings=0000000001001000000000
 
 [Unit1]
 FileName=main.cpp

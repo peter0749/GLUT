@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include <complex>
 #include <cstring>
 #ifdef __linux__
 #include <GL/glut.h>
@@ -9,8 +8,13 @@
 #include <GL\glut.h>
 #endif
 #include <algorithm>
+#include <complex>
+#include <stack>
 #define PALETTE_SIZE 256
 #define EPS 0.97f
+#define MP std::make_pair
+typedef std::pair<GLfloat,GLfloat> PII;
+typedef std::pair< PII, PII > PIV;
 
 int TH_HOLD=150;
 size_t width=640, height=480;
@@ -22,6 +26,7 @@ const GLfloat r_HOLD = 4.1f;
 bool FullScreen=false;
 int consoleID;
 int old_dx=0, old_dy=0, new_dx=0, new_dy=0;
+std::stack< PIV > HistoryWindow;
 
 const GLfloat YIQ[3][3]= {
         {0.299,0.587,0.114},
@@ -42,6 +47,10 @@ inline void slow_YIQ2RGB( GLfloat mtx[3] ){
                }
        }
        memcpy(mtx, temp, std::min(sizeof(mtx),sizeof(temp)));
+}
+
+inline void refresh_diff(void){
+       dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
 }
 
 inline double mu_trans(double x, double mu){
@@ -105,12 +114,12 @@ void Mouse_event(int button, int state, int x, int y){
            y=height-y;
            if(y>old_dy)std::swap(y,old_dy);
            new_dy = (double)old_dy - ((double)height/(double)width)*((double)new_dx-(double)old_dx);
-           
+           HistoryWindow.push( MP( MP(minX,maxX),MP(minY,maxY) ) );
            minX = minX + dX*(double)(old_dx);
            maxX = maxX - dX*(double)(width-new_dx);
            minY = minY + dY*(double)(new_dy);
            maxY = maxY - dY*(double)(height-old_dy);
-           dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
+           refresh_diff();
            glLoadIdentity();
            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
            glutPostRedisplay();
@@ -120,7 +129,7 @@ void Mouse_event(int button, int state, int x, int y){
 void window_shape(int x, int y){
      glViewport(0, 0, (GLsizei)x, (GLsizei)y);
      width = (size_t)x; height=(size_t)y;
-     dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
+     refresh_diff();
      glutPostRedisplay();
 }
 
@@ -142,40 +151,55 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
 			glutPostRedisplay();
 			break;
 		case '-':
-             TH_HOLD-=20;
-             glutPostRedisplay();
+             if(TH_HOLD>0){
+                 TH_HOLD-=15;
+                 glutPostRedisplay();
+             }
              break;
         case '+':
-             TH_HOLD+=20;
+             TH_HOLD+=15;
              glutPostRedisplay();
              break;
         case '8':
              minY+=(dY*10);maxY+=(dY*10);
-             dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
+             refresh_diff();
              glLoadIdentity();
              glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
              glutPostRedisplay();
              break;
         case '2':
              minY-=(dY*10);maxY-=(dY*10);
-             dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
+             refresh_diff();
              glLoadIdentity();
              glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
              glutPostRedisplay();
              break;
         case '4':
              minX-=(dX*10);maxX-=(dX*10);
-             dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
+             refresh_diff();
              glLoadIdentity();
              glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
              glutPostRedisplay();
              break;
         case '6':
              minX+=(dX*10);maxX+=(dX*10);
-             dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
+             refresh_diff();
              glLoadIdentity();
              glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
              glutPostRedisplay();
+             break;
+        case '5':
+             if(!HistoryWindow.empty()){
+                 minX = HistoryWindow.top().first.first;
+                 maxX = HistoryWindow.top().first.second;
+                 minY = HistoryWindow.top().second.first;
+                 maxY = HistoryWindow.top().second.second;
+                 HistoryWindow.pop();
+                 refresh_diff();
+                 glLoadIdentity();
+                 glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+                 glutPostRedisplay();
+             }
              break;
 		case 27 : // escape key - close the program
 			glutDestroyWindow(consoleID);
