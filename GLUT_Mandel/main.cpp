@@ -230,6 +230,7 @@ int main(int argc, char **argv)
     consoleID = glutCreateWindow("Mandelbrot");
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_POINT_SMOOTH);//SMOOTH POINTS BEFORE PUSH INTO BUFFER
     glViewport(0,0, (GLsizei)width, (GLsizei)height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
