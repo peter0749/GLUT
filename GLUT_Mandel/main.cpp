@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <complex>
 #include <stack>
-#define USE_GMP
+//#define USE_GMP
 #ifdef USE_GMP
 #include <gmpxx.h>
 #endif
