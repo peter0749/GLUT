@@ -10,24 +10,32 @@
 #include <algorithm>
 #include <complex>
 #include <stack>
+#define USE_GMP
+#ifdef USE_GMP
+#include <gmpxx.h>
+#endif
 #define PALETTE_SIZE 256
 #define EPS 0.997f
+#define GLF_ERR 0.000095f
 #define MP std::make_pair
 #define DEF_W 800
 #define DEF_H 450
 #define STRING_LEN 1000
+#define DEF_GMPPREC 64
 typedef std::pair<GLfloat,GLfloat> PII;
 typedef std::pair< PII, PII > PIV;
 
+int GMPPREC=DEF_GMPPREC;
 int TH_HOLD=150;
 size_t width=DEF_W, height=DEF_H;
 GLfloat minX = -4.0f, maxX = 4.0f, minY = -2.25f, maxY = 2.25f;
 GLfloat dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
 GLfloat palette[PALETTE_SIZE][3];//R,G,B;
 GLfloat black[3] = {0.0f,0.0f,0.0f};
+GLfloat white[3] = {1.0f,1.0f,1.0f};
 const GLfloat r_HOLD = 4.1f;
 bool FullScreen=false;
-char title[STRING_LEN];
+char title[STRING_LEN],GMPbuffer[STRING_LEN];
 int consoleID;
 int old_dx=0, old_dy=0, new_dx=0, new_dy=0;
 std::stack< PIV > HistoryWindow;
@@ -82,16 +90,71 @@ void InitPalette(void){
 
 GLfloat *in_set(double re, double img){
        int counter = 0;
-       std::complex<double> Z(re,img), nZ(0.0f,0.0f);
-       while( counter<TH_HOLD ){
-              nZ = nZ*nZ + Z;
-              ++counter;
-              if(std::abs(nZ) > 4.0f){
-                  counter = (int)floor( (float)counter / (float)TH_HOLD * (float)PALETTE_SIZE);
-                  return palette[ counter  ];
-              }
+#ifdef USEGMP
+       if(std::min((double)maxX-(double)minX,(double)maxY-(double)minY)<GLF_ERR &&\
+        std::abs(re-img)<GLF_ERR){
+            mpf_set_default_prec(GMPPREC);
+            mpf_t R,I;
+           	mpf_t r, i, nr, ni;
+        	mpf_t c1, c2;
+        	mpf_t temp;
+        	sprintf(GMPbuffer, "%lf", re);
+        	mpf_init_set_str(R, GMPbuffer, 10);
+        	sprintf(GMPbuffer, "%lf", img);
+        	mpf_init_set_str(I, GMPbuffer, 10);
+        	mpf_init_set_str(r, "0", 10);
+        	mpf_init_set_str(i, "0", 10);
+        	mpf_init_set_str(nr, "0", 10);
+        	mpf_init_set_str(ni, "0", 10);
+        	mpf_init_set_str(c1, "4", 10);
+        	mpf_init_set_str(c2, "2", 10);
+        	mpf_init_set_str(temp, "0", 10);
+        
+        	while(counter < TH_HOLD )
+        	{
+        		mpf_mul(nr, r, r);
+        		mpf_mul(temp, i, i);
+        		mpf_sub(nr, nr, temp);
+        		mpf_add(nr, nr, R);
+        		mpf_mul(temp, r, i);
+        		mpf_mul(temp, temp, c2 );
+        		mpf_add(ni, temp, I);
+        		if( mpf_cmp(ni,i)==0 && mpf_cmp(nr,r)==0 )
+        		{
+                    break;
+        		}
+        		if( mpf_cmp(temp,c1) > 0 ){
+                    counter = (int)floor( (float)counter / (float)TH_HOLD * (float)PALETTE_SIZE);
+                    return palette[ counter  ];
+                    //return white;
+                }
+        		mpf_set(r,nr);
+        		mpf_set(i,ni);
+        		counter++;
+        	}
+        	mpf_clear(r);
+        	mpf_clear(i);
+        	mpf_clear(nr);
+        	mpf_clear(ni);
+        	mpf_clear(c1);
+        	mpf_clear(c2);
+        	mpf_clear(temp);
+        	mpf_clear(R);
+        	mpf_clear(I);
+        
+        	return black;
        }
-       return black;
+#endif
+           std::complex<long double> Z(re,img), nZ(0.0f,0.0f);
+           while( counter<TH_HOLD ){
+                  nZ = nZ*nZ + Z;
+                  ++counter;
+                  if(std::abs(nZ) > 4.0f){
+                      counter = (int)floor( (float)counter / (float)TH_HOLD * (float)PALETTE_SIZE);
+                      return palette[ counter  ];
+                  }
+           }
+           return black;
 }
 
 void Paint(void){
@@ -105,8 +168,8 @@ void Paint(void){
      }
      glEnd();
      glutSwapBuffers();
-     sprintf(title,"MandelBrot   X:%.2lf,%.2lf Y:%.2lf,%.2lf", (double)minX, (double)maxX,\
-             (double)minY,(double)maxY
+     sprintf(title,"MandelBrot   X:%.2lf,%.2lf Y:%.2lf,%.2lf  diff:%lf", (double)minX, (double)maxX,\
+             (double)minY,(double)maxY,std::min((double)maxX-(double)minX , (double)maxY-(double)minY)
      );
      glutSetWindowTitle(title);
 }
@@ -169,6 +232,18 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
              TH_HOLD+=15;
              glutPostRedisplay();
              break;
+#ifdef USE_GMP
+        case '7':
+             GMPPREC-=4;
+             if(std::min((double)maxX-(double)minX,(double)maxY-(double)minY)<GLF_ERR)
+                 glutPostRedisplay();
+             break;
+        case '9':
+             GMPPREC+=4;
+             if(std::min((double)maxX-(double)minX,(double)maxY-(double)minY)<GLF_ERR)
+                 glutPostRedisplay();
+             break;
+#endif
         case '8':
              minY+=(dY*10);maxY+=(dY*10);
              refresh_diff();
