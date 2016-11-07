@@ -4,7 +4,7 @@
 #include <cstring>
 #ifdef __linux__
 #include <GL/glut.h>
-#define GLF_ERR 0.001f
+#define GLF_ERR 0.000100f
 #elif __WIN32
 #include <GL\glut.h>
 #define GLF_ERR 0.000095f
@@ -17,6 +17,7 @@
 #include <gmpxx.h>
 #include <omp.h>
 #endif
+//#define USE_DITHER
 #define PALETTE_SIZE 256
 #define EPS 0.997f
 #define MP std::make_pair
@@ -333,10 +334,12 @@ int main(int argc, char **argv)
     consoleID = glutCreateWindow("Mandelbrot");
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
-#ifdef _WIN32
-    glEnable(GL_POINT_SMOOTH);//SMOOTH POINTS BEFORE PUSH INTO BUFFER
+#ifdef USE_DITHER
+	glEnable(GL_DITHER);
 #endif
-    //glEnable(GL_DITHER);
+	glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_BLEND);
+	glPointSize(3.0);
     glViewport(0,0, (GLsizei)width, (GLsizei)height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
