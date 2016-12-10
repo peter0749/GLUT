@@ -3,5 +3,6 @@
 ![Bcurve](./imgs/bcurve.gif)
 #####2. Mandelbrot Set (with C++ containers) and Burning Ship
 ![Ship](./imgs/ship.gif)
-#####3. MandelBrot Set with OpenMP and GMP
+#####3. MandelBrot Set with OpenMP and GMP/ OpenACC
 ![mandelbrot](./imgs/mandelbrot.gif)
+![OpenACC](./imgs/mandelgif.gif)
