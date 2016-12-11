@@ -37,7 +37,7 @@ bool FullScreen=false;
 char title[STRING_LEN],GMPbuffer[STRING_LEN];
 int consoleID;
 double old_dx=0, old_dy=0, new_dx=0, new_dy=0;
-double gam=6.5000f;
+double gam=5.0000f;
 int zoomstep=2;
 std::stack< PIV > HistoryWindow;
 int index_map[MAX_H][MAX_W];
@@ -53,7 +53,7 @@ const GLfloat rYIQ[3][3]= {
     {1.0f, -1.106, 1.703}
 };
 inline void slow_YIQ2RGB( GLfloat target[3], GLfloat mtx[3] ){
-    memset(target,0x00,sizeof(target));
+    for(int i=0; i<3; ++i) target[i]=(GLfloat)0.0f;
     for(int k=0; k<3; ++k){
         for(int i=0; i<3; ++i){
             target[i] += rYIQ[i][k] *  mtx[k];
@@ -70,14 +70,14 @@ inline double mu_trans(double x, double mu){
 }
 
 void InitPalette(void){
-    GLfloat oriI=0.0f, oriQ=0.5226f, oriY=0.0f;
+    GLfloat oriI=-0.5957f, oriQ=0.5226f;
     const double stepQ = 0.5226f*0.6f/(double)PALETTE_SIZE;
     const double stepI = 0.5957f*2.0f/(double)PALETTE_SIZE;
 
     /*Use YIQ, Q Channel.*/
     for(int i=0; i<PALETTE_SIZE; ++i){
         //palette[i][0] = 1.0f;//Undetermined
-        palette[i][1] = (GLfloat)(stepI*(double)i);//I
+        palette[i][1] = oriI+(GLfloat)(stepI*(double)i);//I
         palette[i][2] = oriQ-(GLfloat)(stepQ*(double)i);//Q
     }
 }
@@ -107,7 +107,7 @@ void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
                 ni+=y;
                 if( (float)ni==(float)I && (float)nr==(float)R ){
 #ifdef VIS_REUSE
-                    index_map[i][j] = PALETTE_SIZE-1;
+                    index_map[i][j] = TH_HOLD;
 #endif
                     break;
                 };
