@@ -19,8 +19,8 @@
 #define DEF_H 720
 #define STRING_LEN 1000
 #define DEF_GMPPREC 64
-#define MAX_W 2000
-#define MAX_H 2000
+#define MAX_W 2560
+#define MAX_H 1440
 typedef std::pair<GLfloat,GLfloat> PII;
 typedef std::pair< PII, PII > PIV;
 
@@ -95,7 +95,7 @@ void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
 #pragma acc data copy(index_map[:h][:w])
 #pragma acc kernels loop
     for(int i=0; i<height; ++i){
-#pragma acc loop vector(16)
+#pragma acc loop vector
         for(int j=0; j<width; ++j){
             int step;
             double y = (double)((double)pY*(double)i+(double)minY);
@@ -179,7 +179,10 @@ void Mouse_event(int button, int state, int x, int y){
 }
 
 void window_shape(int x, int y){
-    glViewport(0, 0, (GLsizei)x, (GLsizei)y);
+    int t=y;
+    if(x>MAX_W) x=MAX_W;
+    if(y>MAX_H) y=MAX_H;
+    glViewport(0,(GLsizei)(t-y),(GLsizei)x, (GLsizei)y);
     width = (size_t)x; height=(size_t)y;
     refresh_diff();
     glutPostRedisplay();
