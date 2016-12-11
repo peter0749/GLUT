@@ -13,7 +13,7 @@
 #include <complex>
 #include <stack>
 #define PALETTE_SIZE 256
-#define EPS 0.997f
+#define EPS 0.99997f
 #define MP std::make_pair
 #define DEF_W 1280
 #define DEF_H 720
@@ -33,7 +33,7 @@ double oridX;
 GLfloat palette[PALETTE_SIZE][3];//R,G,B;
 GLfloat black[3] = {0.0f,0.0f,0.0f};
 GLfloat white[3] = {1.0f,1.0f,1.0f};
-const GLfloat r_HOLD = 4.1f;
+const GLfloat r_HOLD = 4.0f;
 bool FullScreen=false;
 char title[STRING_LEN],GMPbuffer[STRING_LEN];
 int consoleID;
@@ -87,19 +87,23 @@ void InitPalette(void){
     for(int i=0; i<PALETTE_SIZE; ++i){
         slow_YIQ2RGB(palette[i]);
     }
+    for(int i=0; i<3; ++i)
+        palette[0][i] = black[i];
 }
 
 void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
 #pragma acc data copy(index_map[:h][:w])
-#pragma acc kernels
+#pragma acc kernels loop
     for(int i=0; i<height; ++i){
+#pragma acc loop vector(16)
         for(int j=0; j<width; ++j){
             int step;
             double y = (double)((double)pY*(double)i+(double)minY);
             double x = (double)((double)pX*(double)j+(double)minX);
             double R=0, I=0, nr, ni;
-            index_map[i][j]=-1;
-            for(step=0 ;step < TH_HOLD; ++step){
+            index_map[i][j]=0;
+#pragma acc loop seq
+            for(step=0 ;step <= TH_HOLD; ++step){
                 nr=R*R;
                 ni=I*I;
                 if(nr+ni > 4.0f){
@@ -110,6 +114,12 @@ void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
                 ni=R*I;
                 ni+=ni;
                 ni+=y;
+                if( (float)ni==(float)I && (float)nr==(float)R ){
+#ifdef VIS_REUSE
+                    index_map[i][j] = PALETTE_SIZE-1;
+#endif
+                    break;
+                };
                 R=nr;
                 I=ni;			
             }
@@ -127,7 +137,7 @@ void Paint(void){
         for(int j=0; j<width; ++j){
             GLfloat y = (GLfloat)((long double)pY*(long double)i+(long double)minY);
             GLfloat x = (GLfloat)((long double)pX*(long double)j+(long double)minX);
-            glColor3fv( index_map[i][j]==-1?black:palette[index_map[i][j]]);
+            glColor3fv( palette[index_map[i][j]]);
             glVertex2f(x,y);
         }
     }
