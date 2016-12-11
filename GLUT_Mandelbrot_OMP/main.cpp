@@ -12,21 +12,18 @@
 #include <algorithm>
 #include <complex>
 #include <stack>
-#include <omp.h>
-#define PALETTE_SIZE 256
+#define PALETTE_SIZE 512
 #define EPS 0.99997f
 #define MP std::make_pair
 #define DEF_W 1280
 #define DEF_H 720
 #define STRING_LEN 1000
-#define DEF_GMPPREC 64
 #define MAX_W 2560
 #define MAX_H 1440
 typedef std::pair<GLfloat,GLfloat> PII;
 typedef std::pair< PII, PII > PIV;
 
-int GMPPREC=DEF_GMPPREC;
-int TH_HOLD=150;
+int TH_HOLD=80;
 size_t width=DEF_W, height=DEF_H;
 GLfloat minX = -4.0f, maxX = 4.0f, minY = -2.25f, maxY = 2.25f;
 GLfloat dX = ((maxX-minX)/(GLfloat)width)*EPS, dY = ((maxY-minY)/(GLfloat)height)*EPS;
@@ -38,7 +35,8 @@ const GLfloat r_HOLD = 4.0f;
 bool FullScreen=false;
 char title[STRING_LEN],GMPbuffer[STRING_LEN];
 int consoleID;
-int old_dx=0, old_dy=0, new_dx=0, new_dy=0;
+double old_dx=0, old_dy=0, new_dx=0, new_dy=0;
+int zoomstep=2;
 std::stack< PIV > HistoryWindow;
 int index_map[MAX_H][MAX_W];
 
@@ -125,6 +123,16 @@ void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
     }
 }
 
+inline void zoomInFunc(int key){//1 or 0//9
+    double movex;
+    movex = (key)? zoomstep : -zoomstep;
+    double movey = ((double)height/(double)width)*movex;
+    minX = minX + dX*movex;
+    maxX = maxX - dX*movex;
+    minY = minY + dY*movey;
+    maxY = maxY - dY*movey;
+}
+
 void Paint(void){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
     glBegin(GL_POINTS);
@@ -140,7 +148,7 @@ void Paint(void){
         }
     }
     glEnd();
-    sprintf(title,"X:%.2e Y:%.2e zoom(log2):%lf iterations:%d", (double)(minX+maxX)/2, (double)(minY+maxY)/2, log2(oridX/(double)dX), TH_HOLD);
+    sprintf(title,"X:%.2e Y:%.2e zoom(log2):%lf iterations:%d movestep:%d", (double)(minX+maxX)/2, (double)(minY+maxY)/2, log2(oridX/(double)dX), TH_HOLD, zoomstep);
     glDisable( GL_DEPTH_TEST);
 
     glColor3d(1.0,1.0,1.0);
@@ -161,8 +169,8 @@ void Mouse_event(int button, int state, int x, int y){
     }else if( state==GLUT_UP && button==GLUT_LEFT_BUTTON ){
         new_dx = x;
         if(new_dx<old_dx)std::swap(new_dx,old_dx);
-        y=height-y;
-        if(y>old_dy)std::swap(y,old_dy);
+        new_dy=height-y;
+        if(new_dy>old_dy)std::swap(new_dy,old_dy);
         new_dy = (double)old_dy - ((double)height/(double)width)*((double)new_dx-(double)old_dx);
         HistoryWindow.push( MP( MP(minX,maxX),MP(minY,maxY) ) );
         minX = minX + dX*(double)(old_dx);
@@ -174,8 +182,32 @@ void Mouse_event(int button, int state, int x, int y){
         glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
         glutPostRedisplay();
     }
+    if(state==GLUT_DOWN && ( button==3 || button==4 )){
+        zoomInFunc(button==3);
+        glLoadIdentity();
+        glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+        glutPostRedisplay();
+    }
 }
 
+void mouseMove(int x, int y){
+    const int mmoveStep = 2;
+    //printf("xpos:%d ypos:%d\n",x,y);
+    int boarder=std::min(height,width)*2/7;
+    char fa=(x<boarder), fb=(x+boarder>width), fc=(y<boarder), fd=(y+boarder>height);
+    if(fa|fb|fc|fd){
+        double tx = (fa? -dX*mmoveStep: (fb? dX*mmoveStep:0) );
+        double ty = (fc? dY*mmoveStep: (fd? -dY*mmoveStep:0) );
+        minX+=tx;
+        maxX+=tx;
+        minY+=ty;
+        maxY+=ty;
+        refresh_diff();
+        glLoadIdentity();
+        glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+        glutPostRedisplay();
+    }
+}
 void window_shape(int x, int y){
     int t=y;
     if(x>MAX_W) x=MAX_W;
@@ -202,45 +234,38 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
                 FullScreen = true;
                 glutFullScreen(); // go to fullscreen mode
             }
-            //glutPostRedisplay();
             break;
         case '-':
             if(TH_HOLD>0){
                 --TH_HOLD;
-                //glutPostRedisplay();
             }
             break;
         case '+':
             ++TH_HOLD;
-            //glutPostRedisplay();
             break;
         case '8':
-            minY+=(dY*4);maxY+=(dY*4);
+            minY+=(dY*zoomstep);maxY+=(dY*zoomstep);
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            //glutPostRedisplay();
             break;
         case '2':
-            minY-=(dY*4);maxY-=(dY*4);
+            minY-=(dY*zoomstep);maxY-=(dY*zoomstep);
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            //glutPostRedisplay();
             break;
         case '4':
-            minX-=(dX*4);maxX-=(dX*4);
+            minX-=(dX*zoomstep);maxX-=(dX*zoomstep);
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            //glutPostRedisplay();
             break;
         case '6':
-            minX+=(dX*4);maxX+=(dX*4);
+            minX+=(dX*zoomstep);maxX+=(dX*zoomstep);
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            //glutPostRedisplay();
             break;
         case '5':
             if(!HistoryWindow.empty()){
@@ -252,12 +277,26 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
                 refresh_diff();
                 glLoadIdentity();
                 glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-                //glutPostRedisplay();
             }
+            break;
+        case '9'://Zoom-in
+        case '3'://Zoom-out
+            zoomInFunc(key=='9');
+            refresh_diff();
+            glLoadIdentity();
+            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+            break;
+        case '1':
+            if(zoomstep>1)
+                --zoomstep;
+            break;
+        case '7':
+            if(zoomstep<1e9)
+                ++zoomstep;
             break;
         case 27 : // escape key - close the program
             glutDestroyWindow(consoleID);
-            exit(0);
+            exit(0);//exit program
             break;
     }
     glutPostRedisplay();
@@ -291,6 +330,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(Paint);
     glutReshapeFunc(window_shape);
     glutMouseFunc(Mouse_event);
+    glutPassiveMotionFunc( mouseMove );
     glutKeyboardFunc(keyEvent);
 
     glutMainLoop();
