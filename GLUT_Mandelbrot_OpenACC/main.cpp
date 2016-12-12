@@ -33,6 +33,7 @@ GLfloat palette[PALETTE_SIZE][3];//R,G,B;
 GLfloat black[3] = {0.0f,0.0f,0.0f};
 GLfloat white[3] = {1.0f,1.0f,1.0f};
 const GLfloat r_HOLD = 4.0f;
+const double maxZoom = (double)131072;
 bool FullScreen=false;
 char title[STRING_LEN],GMPbuffer[STRING_LEN];
 int consoleID;
@@ -119,9 +120,12 @@ void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
 }
 
 inline void zoomInFunc(int key){//1 or 0//9
-    double movex;
-    movex = (key)? zoomstep : -zoomstep;
-    double movey = ((double)height/(double)width)*movex;
+    double movex, movey;
+    if(key){
+        movex = zoomstep;
+        if(oridX/(double)dX > maxZoom) return;
+    }else movex = -zoomstep;
+    movey = ((double)height/(double)width)*movex;
     minX = minX + dX*movex;
     maxX = maxX - dX*movex;
     minY = minY + dY*movey;
