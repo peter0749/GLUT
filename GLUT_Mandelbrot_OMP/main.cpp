@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <complex>
 #include <stack>
+#include <omp.h>
 #define PALETTE_SIZE 768
 #define EPS 0.99997f
 #define MP std::make_pair
@@ -126,8 +127,8 @@ inline void zoomInFunc(int key){//1 or 0//9
 }
 
 void det_luminance(void){
-#pragma omp parallel for
     for(int i=1; i<PALETTE_SIZE; ++i) hist[i]+=hist[i-1];
+#pragma omp parallel for
     for(int i=0; i<PALETTE_SIZE; ++i){
         palette[i][0] = pow((double)hist[i] / (double)hist[PALETTE_SIZE-1], gam);//Determine Luminance
     }
