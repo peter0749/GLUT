@@ -4,6 +4,7 @@
 #include <cstring>
 #ifdef __linux__
 #include <GL/glut.h>
+#include "fps_counter.h"
 #define GLF_ERR 0.000100f
 #elif __WIN32
 #include <GL\glut.h>
@@ -15,8 +16,8 @@
 #define PALETTE_SIZE 768
 #define EPS 0.99997f
 #define MP std::make_pair
-#define DEF_W 1280
-#define DEF_H 720
+#define DEF_W 848
+#define DEF_H 477
 #define STRING_LEN 1000
 #define MAX_W 2560
 #define MAX_H 1440
@@ -35,6 +36,7 @@ GLfloat white[3] = {1.0f,1.0f,1.0f};
 const GLfloat r_HOLD = 4.0f;
 const double maxZoom = (double)131072;
 bool FullScreen=false;
+bool KeyBOOL[256]={false};
 char title[STRING_LEN],GMPbuffer[STRING_LEN];
 int consoleID;
 double old_dx=0, old_dy=0, new_dx=0, new_dy=0;
@@ -166,11 +168,15 @@ void Paint(void){
         }
     }
     glEnd();
-    sprintf(title,"X:%.2e Y:%.2e zoom(log2):%lf iterations:%d movestep:%d gamma:%.3lf", (double)(minX+maxX)/2, (double)(minY+maxY)/2, log2(oridX/(double)dX), TH_HOLD, zoomstep, gam);
+#ifndef __WIN32
+    sprintf(title,"FPS: %.2lf X:%.2e Y:%.2e zoom(log2):%lf ite:%d step:%d gamma:%.3lf", fpsCount(), (double)(minX+maxX)/2, (double)(minY+maxY)/2, log2(oridX/(double)dX), TH_HOLD, zoomstep, gam);
+#else
+    sprintf(title,"X:%.2e Y:%.2e zoom(log2):%lf ite:%d step:%d gamma:%.3lf", (double)(minX+maxX)/2, (double)(minY+maxY)/2, log2(oridX/(double)dX), TH_HOLD, zoomstep, gam);
+#endif
     glDisable( GL_DEPTH_TEST);
 
     glColor3d(1.0,1.0,1.0);
-    glRasterPos2f(minX+dX,minY+dY);
+    glRasterPos2f(minX+2*dX,maxY-20*dY);
 
     for(int i=0; title[i]!='\0'; ++i)
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, title[i]);
@@ -236,7 +242,73 @@ void window_shape(int x, int y){
     glutPostRedisplay();
 }
 
+void IdelLOOP(void){
+    if(KeyBOOL['-']){
+        if(TH_HOLD>1) --TH_HOLD;
+    }else if(KeyBOOL['+']) ++TH_HOLD;
+    else if(KeyBOOL['8']|KeyBOOL['w']){
+        minY+=(dY*zoomstep);maxY+=(dY*zoomstep);
+        refresh_diff();
+        glLoadIdentity();
+        glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+    }else if(KeyBOOL['2']|KeyBOOL['s']){
+        minY-=(dY*zoomstep);maxY-=(dY*zoomstep);
+        refresh_diff();
+        glLoadIdentity();
+        glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+    }else if(KeyBOOL['4']|KeyBOOL['a']){
+        minX-=(dX*zoomstep);maxX-=(dX*zoomstep);
+        refresh_diff();
+        glLoadIdentity();
+        glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+    }else if(KeyBOOL['6']|KeyBOOL['d']){
+        minX+=(dX*zoomstep);maxX+=(dX*zoomstep);
+        refresh_diff();
+        glLoadIdentity();
+        glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+    }else if(KeyBOOL['5']|KeyBOOL['r']){
+        if(!HistoryWindow.empty()){
+            minX = HistoryWindow.top().first.first;
+            maxX = HistoryWindow.top().first.second;
+            minY = HistoryWindow.top().second.first;
+            maxY = HistoryWindow.top().second.second;
+            HistoryWindow.pop();
+            refresh_diff();
+            glLoadIdentity();
+            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+        }
+    }else if(KeyBOOL['9']|KeyBOOL['e']|KeyBOOL['3']|KeyBOOL['q']){
+        zoomInFunc(KeyBOOL['9']|KeyBOOL['e']);
+        refresh_diff();
+        glLoadIdentity();
+        glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+    }
+    if(KeyBOOL['-']|\
+            KeyBOOL['+']|\
+            KeyBOOL['8']|\
+            KeyBOOL['w']|\
+            KeyBOOL['2']|\
+            KeyBOOL['s']|\
+            KeyBOOL['4']|\
+            KeyBOOL['a']|\
+            KeyBOOL['6']|\
+            KeyBOOL['d']|\
+            KeyBOOL['5']|\
+            KeyBOOL['r']|\
+            KeyBOOL['9']|\
+            KeyBOOL['e']|\
+            KeyBOOL['3']|\
+            KeyBOOL['q']\
+            )
+            glutPostRedisplay();
+}
+
+void keyEventUP(unsigned char key, int x, int y){
+    KeyBOOL[key] = false;
+}
+
 void keyEvent(unsigned char key, int x, int y){ // function to handle key pressing
+/*Not Continuous Key Events*/
     switch(key){
         case 'F': // pressing F is turning on/off fullscreen mode
         case 'f':
@@ -252,85 +324,44 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
                 FullScreen = true;
                 glutFullScreen(); // go to fullscreen mode
             }
-            break;
-        case '-':
-            if(TH_HOLD>0){
-                --TH_HOLD;
-            }
-            break;
-        case '+':
-            ++TH_HOLD;
-            break;
-        case '8': case 'w':
-            minY+=(dY*zoomstep);maxY+=(dY*zoomstep);
-            refresh_diff();
-            glLoadIdentity();
-            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            break;
-        case '2': case 's':
-            minY-=(dY*zoomstep);maxY-=(dY*zoomstep);
-            refresh_diff();
-            glLoadIdentity();
-            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            break;
-        case '4': case 'a':
-            minX-=(dX*zoomstep);maxX-=(dX*zoomstep);
-            refresh_diff();
-            glLoadIdentity();
-            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            break;
-        case '6': case 'd':
-            minX+=(dX*zoomstep);maxX+=(dX*zoomstep);
-            refresh_diff();
-            glLoadIdentity();
-            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            break;
-        case '5': case 'r':
-            if(!HistoryWindow.empty()){
-                minX = HistoryWindow.top().first.first;
-                maxX = HistoryWindow.top().first.second;
-                minY = HistoryWindow.top().second.first;
-                maxY = HistoryWindow.top().second.second;
-                HistoryWindow.pop();
-                refresh_diff();
-                glLoadIdentity();
-                glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-            }
-            break;
-        case '9': case 'e'://Zoom-in
-        case '3': case 'q'://Zoom-out
-            zoomInFunc(key=='9'||key=='e');
-            refresh_diff();
-            glLoadIdentity();
-            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+            glutPostRedisplay();
             break;
         case '1': case 'n':
-            if(zoomstep>1)
+            if(zoomstep>1){
                 --zoomstep;
+                glutPostRedisplay();
+            }
             break;
         case '7': case 'm':
-            if(zoomstep<1e9)
+            if(zoomstep<1e9){
                 ++zoomstep;
+                glutPostRedisplay();
+            }
             break;
         case '/':
             gam+=0.01f;
+            glutPostRedisplay();
             break;
         case '*': case '.':
             if(gam>0.05f){
                 gam-=0.01f;
+                glutPostRedisplay();
             }
             break;
         case 27 : // escape key - close the program
             glutDestroyWindow(consoleID);
             exit(0);//exit program
             break;
+        default:
+            KeyBOOL[key] = true;
+            break;
     }
-    glutPostRedisplay();
 }
 
 int main(int argc, char **argv)
 {
     oridX = (double)dX;
+    memset(KeyBOOL,0x00,sizeof(KeyBOOL));
     glutInit(&argc, argv);
     InitPalette();
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
@@ -354,10 +385,12 @@ int main(int argc, char **argv)
     glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
 
     glutDisplayFunc(Paint);
+    glutIdleFunc( IdelLOOP );
     glutReshapeFunc(window_shape);
     glutMouseFunc(Mouse_event);
     glutPassiveMotionFunc( mouseMove );
     glutKeyboardFunc(keyEvent);
+    glutKeyboardUpFunc( keyEventUP );
 
     glutMainLoop();
     return 0;
