@@ -255,31 +255,31 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
         case '+':
             ++TH_HOLD;
             break;
-        case '8':
+        case '8': case 'w':
             minY+=(dY*zoomstep);maxY+=(dY*zoomstep);
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
             break;
-        case '2':
+        case '2': case 's':
             minY-=(dY*zoomstep);maxY-=(dY*zoomstep);
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
             break;
-        case '4':
+        case '4': case 'a':
             minX-=(dX*zoomstep);maxX-=(dX*zoomstep);
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
             break;
-        case '6':
+        case '6': case 'd':
             minX+=(dX*zoomstep);maxX+=(dX*zoomstep);
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
             break;
-        case '5':
+        case '5': case 'r':
             if(!HistoryWindow.empty()){
                 minX = HistoryWindow.top().first.first;
                 maxX = HistoryWindow.top().first.second;
@@ -291,25 +291,25 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
                 glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
             }
             break;
-        case '9'://Zoom-in
-        case '3'://Zoom-out
-            zoomInFunc(key=='9');
+        case '9': case 'e'://Zoom-in
+        case '3': case 'q'://Zoom-out
+            zoomInFunc(key=='9'||key=='e');
             refresh_diff();
             glLoadIdentity();
             glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
             break;
-        case '1':
+        case '1': case 'n':
             if(zoomstep>1)
                 --zoomstep;
             break;
-        case '7':
+        case '7': case 'm':
             if(zoomstep<1e9)
                 ++zoomstep;
             break;
         case '/':
             gam+=0.01f;
             break;
-        case '*':
+        case '*': case '.':
             if(gam>0.05f){
                 gam-=0.01f;
             }
