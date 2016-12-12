@@ -266,17 +266,6 @@ void IdelLOOP(void){
         refresh_diff();
         glLoadIdentity();
         glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-    }else if(KeyBOOL['5']|KeyBOOL['r']){
-        if(!HistoryWindow.empty()){
-            minX = HistoryWindow.top().first.first;
-            maxX = HistoryWindow.top().first.second;
-            minY = HistoryWindow.top().second.first;
-            maxY = HistoryWindow.top().second.second;
-            HistoryWindow.pop();
-            refresh_diff();
-            glLoadIdentity();
-            glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-        }
     }else if(KeyBOOL['9']|KeyBOOL['e']|KeyBOOL['3']|KeyBOOL['q']){
         zoomInFunc(KeyBOOL['9']|KeyBOOL['e']);
         refresh_diff();
@@ -293,14 +282,12 @@ void IdelLOOP(void){
             KeyBOOL['a']|\
             KeyBOOL['6']|\
             KeyBOOL['d']|\
-            KeyBOOL['5']|\
-            KeyBOOL['r']|\
             KeyBOOL['9']|\
             KeyBOOL['e']|\
             KeyBOOL['3']|\
             KeyBOOL['q']\
-            )
-            glutPostRedisplay();
+      )
+        glutPostRedisplay();
 }
 
 void keyEventUP(unsigned char key, int x, int y){
@@ -308,7 +295,7 @@ void keyEventUP(unsigned char key, int x, int y){
 }
 
 void keyEvent(unsigned char key, int x, int y){ // function to handle key pressing
-/*Not Continuous Key Events*/
+    /*Not Continuous Key Events*/
     switch(key){
         case 'F': // pressing F is turning on/off fullscreen mode
         case 'f':
@@ -325,6 +312,19 @@ void keyEvent(unsigned char key, int x, int y){ // function to handle key pressi
                 glutFullScreen(); // go to fullscreen mode
             }
             glutPostRedisplay();
+            break;
+        case '5': case 'r':
+            if(!HistoryWindow.empty()){
+                minX = HistoryWindow.top().first.first;
+                maxX = HistoryWindow.top().first.second;
+                minY = HistoryWindow.top().second.first;
+                maxY = HistoryWindow.top().second.second;
+                HistoryWindow.pop();
+                refresh_diff();
+                glLoadIdentity();
+                glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
+                glutPostRedisplay();
+            }
             break;
         case '1': case 'n':
             if(zoomstep>1){
