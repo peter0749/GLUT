@@ -194,6 +194,7 @@ void Paint(void){
 #else
     sprintf(title,"X:%.2e Y:%.2e zoom(log2):%lf ite:%d step:%d gamma:%.3lf", (double)(minX+maxX)/2, (double)(minY+maxY)/2, log2(oridX/(double)dX), TH_HOLD, zoomstep, gam);
 #endif
+    printf("x: %.7lf\ny: %.7lf\nzoom:%.7lf\n",(double)(minX+maxX)/2, (double)(minY+maxY)/2, (double)dX/oridX);
     glDisable( GL_DEPTH_TEST);
 
     glColor3d(1.0,1.0,1.0);
