@@ -86,15 +86,27 @@ void InitPalette(void){
 }
 
 void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
+    static int oh=-1, ow=-1, oite=-1e9;
+    static double opy=0, opx=0, omy=0, omx=0;
+    char flag = (TH_HOLD<oite&&\
+                 h==oh&&w==ow&&pY==opy&&pX==opx&&\
+                 minY==omy&&minX==omx);
 #pragma omp parallel for
     for(int i=0; i<height; ++i){
         for(int j=0; j<width; ++j){
-            int step;
+            if(flag && (!index_map[i][j]||index_map[i][j]>TH_HOLD)){//In-set
+#ifdef VIS_REUSE
+                index_map[i][j]=TH_HOLD;
+#else
+                index_map[i][j]=0;
+#endif
+                continue;
+            }
             double y = (double)((double)pY*(double)i+(double)minY);
             double x = (double)((double)pX*(double)j+(double)minX);
             double R=0, I=0, nr, ni;
             index_map[i][j]=0;
-            for(step=0 ;step <= TH_HOLD; ++step){
+            for(int step=0 ;step <= TH_HOLD; ++step){
                 nr=R*R;
                 ni=I*I;
                 if(nr+ni > 4.0f){
@@ -116,6 +128,13 @@ void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
             }
         }
     }
+    oite = TH_HOLD;
+    oh = h;
+    ow = w;
+    opy = pY;
+    opx = pX;
+    omy = minY;
+    omx = minX;
 }
 
 inline void zoomInFunc(int key){//1 or 0//9
