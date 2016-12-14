@@ -268,17 +268,19 @@ void IdelLOOP(void){
     if(KeyBOOL['-']){
         if(TH_HOLD>1) --TH_HOLD;
     }else if(KeyBOOL['+']) ++TH_HOLD;
-    else if(KeyBOOL['8']|KeyBOOL['w']){
+    if(KeyBOOL['8']|KeyBOOL['w']){
         minY+=(dY*zoomstep);maxY+=(dY*zoomstep);
         refresh_diff();
         glLoadIdentity();
         glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-    }else if(KeyBOOL['2']|KeyBOOL['s']){
+    }
+    else if(KeyBOOL['2']|KeyBOOL['s']){
         minY-=(dY*zoomstep);maxY-=(dY*zoomstep);
         refresh_diff();
         glLoadIdentity();
         glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-    }else if(KeyBOOL['4']|KeyBOOL['a']){
+    }
+    if(KeyBOOL['4']|KeyBOOL['a']){
         minX-=(dX*zoomstep);maxX-=(dX*zoomstep);
         refresh_diff();
         glLoadIdentity();
@@ -288,7 +290,8 @@ void IdelLOOP(void){
         refresh_diff();
         glLoadIdentity();
         glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-    }else if(KeyBOOL['9']|KeyBOOL['e']|KeyBOOL['3']|KeyBOOL['q']){
+    }
+    if(KeyBOOL['9']|KeyBOOL['e']|KeyBOOL['3']|KeyBOOL['q']){
         zoomInFunc(KeyBOOL['9']|KeyBOOL['e']);
         refresh_diff();
         glLoadIdentity();

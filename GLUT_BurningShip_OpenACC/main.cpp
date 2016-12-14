@@ -194,6 +194,7 @@ void Paint(void){
 #else
     sprintf(title,"X:%.2e Y:%.2e zoom(log2):%lf ite:%d step:%d gamma:%.3lf", (double)(minX+maxX)/2, (double)(minY+maxY)/2, log2(oridX/(double)dX), TH_HOLD, zoomstep, gam);
 #endif
+    printf("x: %.7lf\ny: %.7lf\nzoom:%.7lf\n",(double)(minX+maxX)/2, (double)(minY+maxY)/2, (double)dX/oridX);
     glDisable( GL_DEPTH_TEST);
 
     glColor3d(1.0,1.0,1.0);
@@ -267,17 +268,19 @@ void IdelLOOP(void){
     if(KeyBOOL['-']){
         if(TH_HOLD>1) --TH_HOLD;
     }else if(KeyBOOL['+']) ++TH_HOLD;
-    else if(KeyBOOL['8']|KeyBOOL['w']){
+    if(KeyBOOL['8']|KeyBOOL['w']){
         minY+=(dY*zoomstep);maxY+=(dY*zoomstep);
         refresh_diff();
         glLoadIdentity();
         glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-    }else if(KeyBOOL['2']|KeyBOOL['s']){
+    }
+    else if(KeyBOOL['2']|KeyBOOL['s']){
         minY-=(dY*zoomstep);maxY-=(dY*zoomstep);
         refresh_diff();
         glLoadIdentity();
         glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-    }else if(KeyBOOL['4']|KeyBOOL['a']){
+    }
+    if(KeyBOOL['4']|KeyBOOL['a']){
         minX-=(dX*zoomstep);maxX-=(dX*zoomstep);
         refresh_diff();
         glLoadIdentity();
@@ -287,7 +290,8 @@ void IdelLOOP(void){
         refresh_diff();
         glLoadIdentity();
         glOrtho(minX,maxX,minY,maxY, ((GLfloat)-1.0f), (GLfloat)1.0f);
-    }else if(KeyBOOL['9']|KeyBOOL['e']|KeyBOOL['3']|KeyBOOL['q']){
+    }
+    if(KeyBOOL['9']|KeyBOOL['e']|KeyBOOL['3']|KeyBOOL['q']){
         zoomInFunc(KeyBOOL['9']|KeyBOOL['e']);
         refresh_diff();
         glLoadIdentity();
