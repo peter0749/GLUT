@@ -91,57 +91,11 @@ void comput_ite(int h, int w, double pY, double pX, double minY, double minX){
     char flag = (TH_HOLD<oite&&\
                  h==oh&&w==ow&&pY==opy&&pX==opx&&\
                  minY==omy&&minX==omx);
-    char onlyX = (TH_HOLD==oite&&h==oh&&w==ow&&pY==opy&&pX==opx&&minY==omy);
-    char onlyY = (TH_HOLD==oite&&h==oh&&w==ow&&pY==opy&&pX==opx&&minX==omx);
-    int beginX, endX, beginY, endY, diffPosi;
-
-    beginX = beginY = 0;
-    endX = w; endY = h;
-   
-    if(onlyX){
-        diffPosi = (((double)minX - (double)omx)/(double)pX);
-        //printf("#%d\n", diffPosi);
-        if(diffPosi>0 && diffPosi<w-1){
-            for(int i=0; i<h; ++i){
-                for(int j=diffPosi; j<w; ++j){
-                    index_map[i][j-diffPosi] = index_map[i][j];
-                }
-            }
-            beginX = w-diffPosi;
-            endX = w;
-        }else if(diffPosi<0 && -diffPosi<w-1){
-            for(int i=0; i<h; ++i){
-                for(int j=w+diffPosi, k=w-1; j>=0; --j, --k){
-                    index_map[i][k] = index_map[i][j];
-                }
-            }
-            beginX = 0;
-            endX = -diffPosi-1;
-        }
-    }else if(onlyY){
-        diffPosi = (((double)minY - (double)omy)/(double)pY);
-        if(diffPosi>0 && diffPosi<h-1){
-            for(int i=diffPosi; i<h; ++i){
-                for(int j=0; j<w; ++j)
-                    index_map[i-diffPosi][j] = index_map[i][j];
-            }
-            beginY = h-diffPosi;
-            endY = h;
-        }else if(diffPosi<0 && -diffPosi<h-1){
-            for(int i=h+diffPosi, k=h-1; i>=0; --i, --k){
-                for(int j=0; j<w; ++j)
-                    index_map[k][j] = index_map[i][j];
-            }
-            beginY = 0;
-            endY = -diffPosi-1;
-        }
-    }
-printf("Reduced: \nX: %d \n Y: %d \n", (endX-beginX), (endY-beginY) );
-#pragma acc data copy(index_map[beginY:endY][beginX:endX])
+#pragma acc data copy(index_map[:h][:w])
 #pragma acc kernels loop
-    for(int i=beginY; i<endY; ++i){
+    for(int i=0; i<height; ++i){
 #pragma acc loop vector
-        for(int j=beginX; j<endX; ++j){
+        for(int j=0; j<width; ++j){
             if(flag && (!index_map[i][j]||index_map[i][j]>TH_HOLD)){//In-set
 #ifdef VIS_REUSE
                 index_map[i][j]=TH_HOLD;
