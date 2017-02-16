@@ -1,0 +1,4 @@
+all:
+	g++ main.cpp -lm -framework OpenGL -framework GLUT -openmp -fopenmp -Ofast  -o MandelOMP.bin
+clean:
+	rm -f MandelOMP.bin

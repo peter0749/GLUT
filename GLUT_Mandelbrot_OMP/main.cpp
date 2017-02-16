@@ -6,6 +6,12 @@
 #include <GL/glut.h>
 #include "fps_counter.h"
 #define GLF_ERR 0.000100f
+#elif __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <GLUT/glut.h>
+#include "fps_counter.h"
+#define GLF_ERR 0.000100f
 #elif __WIN32
 #include <GL\glut.h>
 #define GLF_ERR 0.000095f
@@ -387,7 +393,7 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     InitPalette();
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-    glClearColor(0.0f,0.0f,0.0f,0.0f);
+    //glClearColor(0.0f,0.0f,0.0f,0.0f);
     GLsizei windowX = ( glutGet(GLUT_SCREEN_WIDTH)-width )/2;
     GLsizei windowY = ( glutGet(GLUT_SCREEN_HEIGHT)-height )/2;
     glutInitWindowPosition(windowX, windowY);
